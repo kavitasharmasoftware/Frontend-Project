@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Dashboard Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --dark: #1d3557;
+            --light: #f8f9fa;
+            --danger: #e63946;
+            --warning: #fca311;
+            --info: #a8dadc;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: var(--dark);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        select, input {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .chart-toggle {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .chart-toggle button {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--dark);
+            border: 2px solid #ddd;
+            padding: 12px 20px;
+        }
+
+        .chart-toggle button.active {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            height: 500px;
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .card h3 {
+            margin: 0;
+            color: var(--dark);
+            font-size: 1.4rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background: rgba(67, 97, 238, 0.05);
+            transition: var(--transition);
+        }
+
+        .stat:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: scale(1.03);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .top-months-list {
+            list-style: none;
+        }
+
+        .top-months-list li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(67, 97, 238, 0.05);
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .top-months-list li:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateX(5px);
+        }
+
+        .top-months-list li .rank {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .insight-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .insight-item.warning {
+            background: rgba(252, 163, 17, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .insight-item.danger {
+            background: rgba(230, 57, 70, 0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Sales Dashboard</h1>
+            <p>Interactive sales data visualization for 2022, 2023, and 2024</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="yearSelector"><i class="fas fa-calendar-alt"></i> Select Year:</label>
+                <select id="yearSelector">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="salesThreshold"><i class="fas fa-filter"></i> Sales Threshold:</label>
+                <input type="number" id="salesThreshold" placeholder="Enter minimum sales" />
+                <button id="applyFilter" class="btn-primary">
+                    <i class="fas fa-search"></i> Apply Filter
+                </button>
+            </div>
+            
+            <div class="control-group">
+                <button id="resetFilter" class="btn-secondary">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+        
+        <div class="chart-toggle">
+            <button class="chart-type active" data-type="bar">
+                <i class="fas fa-chart-bar"></i> Bar Chart
+            </button>
+            <button class="chart-type" data-type="line">
+                <i class="fas fa-chart-line"></i> Line Chart
+            </button>
+            <button class="chart-type" data-type="pie">
+                <i class="fas fa-chart-pie"></i> Pie Chart
+            </button>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Yearly Summary</h3>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">Total Sales</div>
+                        <div class="stat-value" id="totalSales">$0</div>
+                        <div class="stat-label">USD</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Avg Sales</div>
+                        <div class="stat-value" id="avgSales">$0</div>
+                        <div class="stat-label">Per Month</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Growth</div>
+                        <div class="stat-value" id="growthRate">0%</div>
+                        <div class="stat-label">vs Previous</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Top Performing Months</h3>
+                </div>
+                <ul class="top-months-list" id="topMonths">
+                    <li>Select a year to see top months</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Data Insights</h3>
+                </div>
+                <div id="insights">
+                    <div class="insight-item">
+                        <p><i class="fas fa-info-circle"></i> Select a year and chart type to see insights.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Sales Dashboard &copy; 2025 | Data Visualization Tool</p>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for demonstration (inspired by typical sales patterns)
+        const salesData = {
+            2022: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                data: [12500, 19200, 15800, 18600, 22400, 25700, 21300, 23800, 19500, 17200, 16800, 20500]
+            },
+            2023: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                data: [15200, 22800, 18500, 21600, 25800, 28900, 24700, 26800, 22500, 20600, 19800, 23700]
+            },
+            2024: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                data: [18900, 25600, 21800, 24900, 28700, 31800, 27600, 29800, 25900, 23700, 22800, 26900]
+            }
+        };
+
+        // Initialize the dashboard
+        let currentYear = 2024;
+        let currentChartType = 'bar';
+        let salesThreshold = 0;
+        let chartInstance = null;
+
+        // DOM elements
+        const yearSelector = document.getElementById('yearSelector');
+        const salesThresholdInput = document.getElementById('salesThreshold');
+        const applyFilterButton = document.getElementById('applyFilter');
+        const resetFilterButton = document.getElementById('resetFilter');
+        const chartTypeButtons = document.querySelectorAll('.chart-type');
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            renderChart();
+            updateStats();
+            updateTopMonths();
+            updateInsights();
+            
+            // Event listeners
+            yearSelector.addEventListener('change', function() {
+                currentYear = parseInt(this.value);
+                renderChart();
+                updateStats();
+                updateTopMonths();
+                updateInsights();
+            });
+            
+            applyFilterButton.addEventListener('click', function() {
+                salesThreshold = parseInt(salesThresholdInput.value) || 0;
+                renderChart();
+                updateStats();
+                updateTopMonths();
+                updateInsights();
+            });
+            
+            resetFilterButton.addEventListener('click', function() {
+                salesThresholdInput.value = '';
+                salesThreshold = 0;
+                renderChart();
+                updateStats();
+                updateTopMonths();
+                updateInsights();
+            });
+            
+            chartTypeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    chartTypeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update chart type
+                    currentChartType = this.dataset.type;
+                    renderChart();
+                });
+            });
+        });
+
+        // Render chart based on current settings
+        function renderChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // Destroy previous chart instance if exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            // Get data for current year
+            const data = salesData[currentYear];
+            
+            // Apply filter if threshold is set
+            let filteredLabels = data.labels;
+            let filteredData = data.data;
+            
+            if (salesThreshold > 0) {
+                filteredLabels = data.labels.filter((label, index) => data.data[index] >= salesThreshold);
+                filteredData = data.data.filter(value => value >= salesThreshold);
+            }
+            
+            // Create chart based on type
+            const chartConfig = {
+                type: currentChartType,
+                data: {
+                    labels: filteredLabels,
+                    datasets: [{
+                        label: `Sales for ${currentYear}`,
+                        data: filteredData,
+                        backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(67, 97, 238, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(67, 97, 238, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(29, 53, 87, 0.9)',
+                            titleFont: {
+                                size: 16
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sales Amount ($)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            };
+            
+            // Special configuration for pie chart
+            if (currentChartType === 'pie') {
+                chartConfig.data.datasets[0].backgroundColor = [
+                    'rgba(67, 97, 238, 0.7)',
+                    'rgba(76, 201, 240, 0.7)',
+                    'rgba(252, 163, 17, 0.7)',
+                    'rgba(230, 57, 70, 0.7)',
+                    'rgba(168, 218, 220, 0.7)',
+                    'rgba(241, 156, 183, 0.7)',
+                    'rgba(153, 217, 140, 0.7)',
+                    'rgba(255, 195, 0, 0.7)',
+                    'rgba(148, 170, 224, 0.7)',
+                    'rgba(199, 113, 113, 0.7)',
+                    'rgba(106, 192, 179, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ];
+                chartConfig.data.datasets[0].borderColor = '#fff';
+                chartConfig.data.datasets[0].borderWidth = 2;
+                chartConfig.options.scales = {};
+                chartConfig.options.plugins.tooltip.callbacks.label = function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    return `${label}: $${value.toLocaleString()}`;
+                };
+            }
+            
+            // Special configuration for line chart
+            if (currentChartType === 'line') {
+                chartConfig.data.datasets[0].fill = true;
+                chartConfig.data.datasets[0].backgroundColor = 'rgba(67, 97, 238, 0.2)';
+                chartConfig.data.datasets[0].tension = 0.3;
+            }
+            
+            chartInstance = new Chart(ctx, chartConfig);
+        }
+
+        // Update statistics
+        function updateStats() {
+            const data = salesData[currentYear];
+            const total = data.data.reduce((sum, value) => sum + value, 0);
+            const average = total / data.data.length;
+            
+            // Calculate growth rate (simplified)
+            let growthRate = 0;
+            let growthClass = '';
+            if (currentYear > 2022) {
+                const prevYear = currentYear - 1;
+                const prevTotal = salesData[prevYear].data.reduce((sum, value) => sum + value, 0);
+                growthRate = ((total - prevTotal) / prevTotal * 100);
+                growthClass = growthRate >= 0 ? 'positive' : 'negative';
+            }
+            
+            document.getElementById('totalSales').textContent = '$' + total.toLocaleString();
+            document.getElementById('avgSales').textContent = '$' + Math.round(average).toLocaleString();
+            document.getElementById('growthRate').textContent = (growthRate >= 0 ? '+' : '') + growthRate.toFixed(1) + '%';
+            document.getElementById('growthRate').className = 'stat-value ' + growthClass;
+        }
+
+        // Update top performing months
+        function updateTopMonths() {
+            const data = salesData[currentYear];
+            const sortedData = data.labels.map((label, index) => ({
+                label,
+                value: data.data[index]
+            })).sort((a, b) => b.value - a.value);
+            
+            const topMonthsContainer = document.getElementById('topMonths');
+            topMonthsContainer.innerHTML = '';
+            
+            const top3 = sortedData.slice(0, 3);
+            top3.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="rank">${index + 1}</span>
+                    <strong>${item.label}</strong>
+                    <span>$${item.value.toLocaleString()}</span>
+                `;
+                topMonthsContainer.appendChild(li);
+            });
+            
+            // If no data after filtering
+            if (top3.length === 0) {
+                const li = document.createElement('li');
+                li.innerHTML = '<span>No data matches your filter</span>';
+                topMonthsContainer.appendChild(li);
+            }
+        }
+
+        // Update insights
+        function updateInsights() {
+            const data = salesData[currentYear];
+            const maxSales = Math.max(...data.data);
+            const minSales = Math.min(...data.data);
+            const maxMonth = data.labels[data.data.indexOf(maxSales)];
+            const minMonth = data.labels[data.data.indexOf(minSales)];
+            const total = data.data.reduce((sum, value) => sum + value, 0);
+            const average = total / data.data.length;
+            
+            const insightsContainer = document.getElementById('insights');
+            insightsContainer.innerHTML = '';
+            
+            // Best performing month insight
+            const bestInsight = document.createElement('div');
+            bestInsight.className = 'insight-item';
+            bestInsight.innerHTML = `
+                <p><i class="fas fa-medal"></i> <strong>Best Performance:</strong> ${maxMonth} achieved the highest sales of <strong>$${maxSales.toLocaleString()}</strong>.</p>
+            `;
+            insightsContainer.appendChild(bestInsight);
+            
+            // Worst performing month insight
+            const worstInsight = document.createElement('div');
+            worstInsight.className = 'insight-item warning';
+            worstInsight.innerHTML = `
+                <p><i class="fas fa-exclamation-triangle"></i> <strong>Area for Improvement:</strong> ${minMonth} had the lowest sales at <strong>$${minSales.toLocaleString()}</strong>.</p>
+            `;
+            insightsContainer.appendChild(worstInsight);
+            
+            // Comparison to average
+            const avgInsight = document.createElement('div');
+            avgInsight.className = 'insight-item';
+            avgInsight.innerHTML = `
+                <p><i class="fas fa-balance-scale"></i> <strong>Average Performance:</strong> Monthly average of <strong>$${Math.round(average).toLocaleString()}</strong> across all months.</p>
+            `;
+            insightsContainer.appendChild(avgInsight);
+        }
+    </script>
+</body>
+</html>
